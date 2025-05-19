@@ -1,0 +1,162 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documento de Préstamo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .main-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+        .subtitle {
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        .date-section {
+            text-align: right;
+            margin-bottom: 20px;
+            font-size: 12px;
+        }
+        .technician {
+            margin-bottom: 30px;
+            font-size: 12px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 40px;
+        }
+        th, td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: left;
+            font-size: 12px;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .signature-section {
+            margin-top: 60px;
+            text-align: center;
+        }
+        .signature-line {
+            width: 50%;
+            margin: 0 auto;
+            border-top: 1px solid #000;
+            margin-bottom: 5px;
+        }
+        .signature-name {
+            font-weight: bold;
+            font-size: 12px;
+        }
+        .responsibility-text {
+            margin-top: 40px;
+            font-style: italic;
+            text-align: justify;
+            font-size: 11px;
+            line-height: 1.4;
+        }
+        .logo {
+            max-width: 80px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="main-title">ESCUELA SUPERIOR POLITÉCNICA DE CHIMBORAZO</div>
+        <div class="subtitle">PRÉSTAMO DE EQUIPOS - {{ prestamo.equipo.laboratorio.nombre|upper }}</div>
+    </div>
+
+    <div class="date-section">
+        <p>Fecha: {{ fecha_actual }}</p>
+    </div>
+
+    <div class="technician">
+        <p><strong>Técnico Encargado:</strong> {{ tecnico }}</p>
+    </div>
+
+    <div class="content">
+        <h3>Información del Préstamo</h3>
+        
+        <table>
+            <tr>
+                <th style="width: 30%;">Solicitante</th>
+                <td>{{ prestamo.persona.nombre }}</td>
+            </tr>
+            <tr>
+                <th>Cédula</th>
+                <td>{{ prestamo.persona.cedula }}</td>
+            </tr>
+            <tr>
+                <th>Carrera</th>
+                <td>{{ prestamo.persona.get_carrera_display }}</td>
+            </tr>
+            {% if prestamo.persona.codigo_institucional %}
+            <tr>
+                <th>Código Institucional</th>
+                <td>{{ prestamo.persona.codigo_institucional }}</td>
+            </tr>
+            {% endif %}
+            <tr>
+                <th>Fecha de Préstamo</th>
+                <td>{{ prestamo.fecha_prestamo|date:"d/m/Y H:i" }}</td>
+            </tr>
+            <tr>
+                <th>Fecha de Devolución Esperada</th>
+                <td>{{ prestamo.fecha_devolucion_esperada|date:"d/m/Y H:i" }}</td>
+            </tr>
+        </table>
+
+        <h3>Equipo Prestado</h3>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 20%;">Código</th>
+                    <th style="width: 50%;">Nombre del Equipo</th>
+                    <th style="width: 30%;">Laboratorio</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ prestamo.equipo.codigo }}</td>
+                    <td>{{ prestamo.equipo.nombre }}</td>
+                    <td>{{ prestamo.equipo.laboratorio.nombre }}</td>
+                </tr>
+                {% if prestamo.observaciones %}
+                <tr>
+                    <th colspan="1">Observaciones</th>
+                    <td colspan="2">{{ prestamo.observaciones }}</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="signature-section">
+        <div class="signature-line"></div>
+        <div class="signature-name">{{ prestamo.persona.nombre }}</div>
+        <div>C.I. {{ prestamo.persona.cedula }}</div>
+    </div>
+
+    <div class="responsibility-text">
+        <p>Yo, <strong>{{ prestamo.persona.nombre }}</strong>, con número de cédula <strong>{{ prestamo.persona.cedula }}</strong>, me responsabilizo por el equipo <strong>{{ prestamo.equipo.nombre }}</strong> (código: <strong>{{ prestamo.equipo.codigo }}</strong>) que estoy retirando del {{ prestamo.equipo.laboratorio.nombre }}. Me comprometo a devolverlo en la fecha acordada y en las mismas condiciones en que lo recibo. Entiendo que cualquier daño o pérdida será mi responsabilidad.</p>
+    </div>
+</body>
+</html>

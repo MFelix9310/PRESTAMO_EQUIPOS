@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Formulario de Persona - Sistema de Préstamo de Equipos{% endblock %}
+
+{% block page_title %}
+{% if form.instance.pk %}Editar Persona{% else %}Nueva Persona{% endif %}
+{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'persona_list' %}" class="btn btn-secondary">
+    <i class="fas fa-arrow-left me-2"></i> Volver a la lista
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <form method="post" novalidate>
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-md-6">
+                    {{ form.nombre|as_crispy_field }}
+                </div>
+                <div class="col-md-6">
+                    {{ form.cedula|as_crispy_field }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    {{ form.carrera|as_crispy_field }}
+                </div>
+                <div class="col-md-6">
+                    {{ form.codigo_institucional|as_crispy_field }}
+                </div>
+            </div>
+            <div class="d-flex justify-content-end mt-3">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-2"></i> Guardar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const carreraSelect = document.getElementById('id_carrera');
+        const codigoField = document.getElementById('id_codigo_institucional');
+        
+        function updateCodigoVisibility() {
+            if (carreraSelect.value === 'PROFESOR') {
+                codigoField.parentElement.querySelector('label').textContent = 'Código Institucional (Opcional)';
+            } else {
+                codigoField.parentElement.querySelector('label').textContent = 'Código Institucional *';
+            }
+        }
+        
+        carreraSelect.addEventListener('change', updateCodigoVisibility);
+        updateCodigoVisibility();
+    });
+</script>
+{% endblock %}

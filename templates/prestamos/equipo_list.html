@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Equipos - Sistema de Préstamo de Equipos{% endblock %}
+
+{% block page_title %}Equipos{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'equipo_create' %}" class="btn btn-primary">
+    <i class="fas fa-plus-circle me-2"></i> Nuevo Equipo
+</a>
+<a href="{% url 'buscar_equipo' %}" class="btn btn-secondary ms-2">
+    <i class="fas fa-search me-2"></i> Buscar por Código
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="card search-container mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" name="busqueda" class="form-control" placeholder="Buscar por código o nombre" value="{{ busqueda }}">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select name="laboratorio" class="form-select">
+                    <option value="">Todos los laboratorios</option>
+                    {% for lab in laboratorios %}
+                    <option value="{{ lab.id }}" {% if laboratorio_id == lab.id|stringformat:"s" %}selected{% endif %}>{{ lab.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="disponible" class="form-select">
+                    <option value="">Todos los estados</option>
+                    <option value="true" {% if disponible == 'true' %}selected{% endif %}>Disponibles</option>
+                    <option value="false" {% if disponible == 'false' %}selected{% endif %}>No disponibles</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if equipos %}
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Código</th>
+                <th>Nombre</th>
+                <th>Laboratorio</th>
+                <th>Disponibilidad</th>
+                <th>Fecha Registro</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for equipo in equipos %}
+            <tr>
+                <td>{{ equipo.codigo }}</td>
+                <td>{{ equipo.nombre }}</td>
+                <td>{{ equipo.laboratorio.nombre }}</td>
+                <td>
+                    {% if equipo.disponible %}
+                    <span class="disponible-si"><i class="fas fa-check-circle me-1"></i> Disponible</span>
+                    {% else %}
+                    <span class="disponible-no"><i class="fas fa-times-circle me-1"></i> No Disponible</span>
+                    {% endif %}
+                </td>
+                <td>{{ equipo.fecha_registro|date:"d/m/Y" }}</td>
+                <td>
+                    <div class="btn-group" role="group">
+                        <a href="{% url 'equipo_detail' equipo.id %}" class="btn btn-sm btn-primary" title="Ver detalles">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <a href="{% url 'equipo_update' equipo.id %}" class="btn btn-sm btn-warning" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <a href="{% url 'equipo_delete' equipo.id %}" class="btn btn-sm btn-danger" title="Eliminar">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if is_paginated %}
+<nav aria-label="Paginación">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page=1{% if busqueda %}&busqueda={{ busqueda }}{% endif %}{% if laboratorio_id %}&laboratorio={{ laboratorio_id }}{% endif %}{% if disponible %}&disponible={{ disponible }}{% endif %}" aria-label="Primera">
+                <span aria-hidden="true">&laquo;&laquo;</span>
+            </a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if busqueda %}&busqueda={{ busqueda }}{% endif %}{% if laboratorio_id %}&laboratorio={{ laboratorio_id }}{% endif %}{% if disponible %}&disponible={{ disponible }}{% endif %}" aria-label="Anterior">
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <a class="page-link" href="#" aria-label="Primera">
+                <span aria-hidden="true">&laquo;&laquo;</span>
+            </a>
+        </li>
+        <li class="page-item disabled">
+            <a class="page-link" href="#" aria-label="Anterior">
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+        </li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <li class="page-item active">
+                <a class="page-link" href="?page={{ num }}{% if busqueda %}&busqueda={{ busqueda }}{% endif %}{% if laboratorio_id %}&laboratorio={{ laboratorio_id }}{% endif %}{% if disponible %}&disponible={{ disponible }}{% endif %}">{{ num }}</a>
+            </li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ num }}{% if busqueda %}&busqueda={{ busqueda }}{% endif %}{% if laboratorio_id %}&laboratorio={{ laboratorio_id }}{% endif %}{% if disponible %}&disponible={{ disponible }}{% endif %}">{{ num }}</a>
+            </li>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if busqueda %}&busqueda={{ busqueda }}{% endif %}{% if laboratorio_id %}&laboratorio={{ laboratorio_id }}{% endif %}{% if disponible %}&disponible={{ disponible }}{% endif %}" aria-label="Siguiente">
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if busqueda %}&busqueda={{ busqueda }}{% endif %}{% if laboratorio_id %}&laboratorio={{ laboratorio_id }}{% endif %}{% if disponible %}&disponible={{ disponible }}{% endif %}" aria-label="Última">
+                <span aria-hidden="true">&raquo;&raquo;</span>
+            </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <a class="page-link" href="#" aria-label="Siguiente">
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+        </li>
+        <li class="page-item disabled">
+            <a class="page-link" href="#" aria-label="Última">
+                <span aria-hidden="true">&raquo;&raquo;</span>
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% else %}
+<div class="alert alert-info">
+    <i class="fas fa-info-circle me-2"></i> No se encontraron equipos registrados.
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Formulario de Préstamo - Sistema de Préstamo de Equipos{% endblock %}
+
+{% block page_title %}
+{% if form.instance.pk %}Editar Préstamo{% else %}Nuevo Préstamo{% endif %}
+{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'prestamo_list' %}" class="btn btn-secondary">
+    <i class="fas fa-arrow-left me-2"></i> Volver a la lista
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <form method="post" novalidate>
+            {% csrf_token %}
+            
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <h5 class="card-title mb-3">Información de la Persona</h5>
+                </div>
+                <div class="col-md-8">
+                    {{ form.persona|as_crispy_field }}
+                </div>
+                <div class="col-md-4">
+                    <div class="input-group mb-3">
+                        <input type="text" name="cedula_busqueda" class="form-control" placeholder="Buscar por cédula" value="{{ form.cedula_busqueda.value|default:'' }}">
+                        <button class="btn btn-primary" type="button" id="buscarPersonaBtn">
+                            <i class="fas fa-search"></i> Buscar
+                        </button>
+                    </div>
+                    {% if form.cedula_busqueda.errors %}
+                    <div class="text-danger">
+                        {{ form.cedula_busqueda.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <h5 class="card-title mb-3">Información del Equipo</h5>
+                </div>
+                <div class="col-md-8">
+                    {{ form.equipos|as_crispy_field }}
+                </div>
+                <div class="col-md-4">
+                    <div class="input-group mb-3">
+                        <input type="text" name="codigo_equipo_busqueda" class="form-control" placeholder="Buscar por código" value="{{ form.codigo_equipo_busqueda.value|default:'' }}">
+                        <button class="btn btn-primary" type="button" id="buscarEquipoBtn">
+                            <i class="fas fa-search"></i> Buscar
+                        </button>
+                    </div>
+                    {% if form.codigo_equipo_busqueda.errors %}
+                    <div class="text-danger">
+                        {{ form.codigo_equipo_busqueda.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <h5 class="card-title mb-3">Detalles del Préstamo</h5>
+                </div>
+                <div class="col-md-6">
+                    {{ form.fecha_devolucion_esperada|as_crispy_field }}
+                </div>
+                <div class="col-md-6">
+                    {{ form.observaciones|as_crispy_field }}
+                </div>
+            </div>
+            
+            <div class="d-flex justify-content-end mt-3">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-2"></i> Guardar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<!-- Añadir CSS para Select2 si no está ya incluido en la plantilla base -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+    .select2-container--default .select2-selection--multiple {
+        border: 1px solid #ced4da;
+        min-height: 38px;
+        width: 100%;
+    }
+    .select2-container {
+        width: 100% !important;
+    }
+    .select2-selection__choice {
+        background-color: #0d6efd !important;
+        color: white !important;
+        border: none !important;
+        padding: 2px 8px !important;
+    }
+    .info-seleccion {
+        color: #6c757d;
+        font-size: 0.875rem;
+        margin-top: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Añadir jQuery y Select2 si no están ya incluidos -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const buscarPersonaBtn = document.getElementById('buscarPersonaBtn');
+        const buscarEquipoBtn = document.getElementById('buscarEquipoBtn');
+        
+        // Inicializar Select2 para selección múltiple de equipos
+        if (jQuery && jQuery.fn.select2) {
+            jQuery('#id_equipos').select2({
+                placeholder: 'Seleccione uno o más equipos',
+                closeOnSelect: false,
+                allowClear: true,
+                language: {
+                    noResults: function() {
+                        return "No se encontraron equipos";
+                    },
+                    searching: function() {
+                        return "Buscando...";
+                    }
+                }
+            });
+        }
+        
+        // Añadir ayuda visual para selección múltiple
+        const equiposContainer = document.querySelector('#div_id_equipos');
+        if (equiposContainer) {
+            const helpText = document.createElement('div');
+            helpText.className = 'info-seleccion';
+            helpText.innerHTML = '<i class="fas fa-info-circle"></i> Para seleccionar varios equipos: <br>- En PC: mantenga presionada la tecla Ctrl (o Cmd en Mac) mientras hace clic en los equipos<br>- En móvil: simplemente toque cada equipo que desee seleccionar';
+            equiposContainer.appendChild(helpText);
+        }
+        
+        buscarPersonaBtn.addEventListener('click', function() {
+            const cedulaInput = document.querySelector('input[name="cedula_busqueda"]');
+            const cedula = cedulaInput.value.trim();
+            
+            if (!cedula) {
+                alert('Por favor, ingrese una cédula para buscar.');
+                return;
+            }
+            
+            // Aquí se podría implementar una búsqueda AJAX, pero por simplicidad
+            // se enviará el formulario con un parámetro adicional
+            const form = document.querySelector('form');
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'buscar_persona';
+            hiddenInput.value = 'true';
+            form.appendChild(hiddenInput);
+            form.submit();
+        });
+        
+        buscarEquipoBtn.addEventListener('click', function() {
+            const codigoInput = document.querySelector('input[name="codigo_equipo_busqueda"]');
+            const codigo = codigoInput.value.trim();
+            
+            if (!codigo) {
+                alert('Por favor, ingrese un código para buscar.');
+                return;
+            }
+            
+            // Aquí se podría implementar una búsqueda AJAX, pero por simplicidad
+            // se enviará el formulario con un parámetro adicional
+            const form = document.querySelector('form');
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'buscar_equipo';
+            hiddenInput.value = 'true';
+            form.appendChild(hiddenInput);
+            form.submit();
+        });
+    });
+</script>
+{% endblock %}

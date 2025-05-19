@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalle de Préstamo - Sistema de Préstamo de Equipos{% endblock %}
+
+{% block page_title %}Detalle de Préstamo{% endblock %}
+
+{% block page_actions %}
+<div class="btn-group" role="group">
+    <a href="{% url 'prestamo_list' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i> Volver a la lista
+    </a>
+    <a href="{% url 'prestamo_update' prestamo.id %}" class="btn btn-warning">
+        <i class="fas fa-edit me-2"></i> Editar
+    </a>
+    <a href="{% url 'prestamo_delete' prestamo.id %}" class="btn btn-danger">
+        <i class="fas fa-trash me-2"></i> Eliminar
+    </a>
+    {% if prestamo.estado == 'PRESTADO' %}
+    <a href="{% url 'devolver_prestamo' prestamo.id %}" class="btn btn-success">
+        <i class="fas fa-undo me-2"></i> Devolver
+    </a>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="detail-container">
+    <div class="row">
+        <div class="col-md-6">
+            <h4 class="detail-header">Información del Préstamo</h4>
+            <div class="mb-3">
+                <span class="detail-label">Estado:</span>
+                <p>
+                    {% if prestamo.estado == 'PRESTADO' %}
+                    <span class="badge bg-warning">Prestado</span>
+                    {% elif prestamo.estado == 'DEVUELTO' %}
+                    <span class="badge bg-success">Devuelto</span>
+                    {% else %}
+                    <span class="badge bg-danger">Retrasado</span>
+                    {% endif %}
+                </p>
+            </div>
+            <div class="mb-3">
+                <span class="detail-label">Fecha de Préstamo:</span>
+                <p>{{ prestamo.fecha_prestamo|date:"d/m/Y H:i" }}</p>
+            </div>
+            <div class="mb-3">
+                <span class="detail-label">Fecha de Devolución Esperada:</span>
+                <p>{{ prestamo.fecha_devolucion_esperada|date:"d/m/Y H:i" }}</p>
+            </div>
+            {% if prestamo.fecha_devolucion_real %}
+            <div class="mb-3">
+                <span class="detail-label">Fecha de Devolución Real:</span>
+                <p>{{ prestamo.fecha_devolucion_real|date:"d/m/Y H:i" }}</p>
+            </div>
+            {% endif %}
+            <div class="mb-3">
+                <span class="detail-label">Observaciones:</span>
+                <p>{{ prestamo.observaciones|default:"Sin observaciones" }}</p>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <h4 class="detail-header">Información de la Persona</h4>
+            <div class="mb-3">
+                <span class="detail-label">Nombre:</span>
+                <p>{{ prestamo.persona.nombre }}</p>
+            </div>
+            <div class="mb-3">
+                <span class="detail-label">Cédula:</span>
+                <p>{{ prestamo.persona.cedula }}</p>
+            </div>
+            <div class="mb-3">
+                <span class="detail-label">Carrera:</span>
+                <p>{{ prestamo.persona.get_carrera_display }}</p>
+            </div>
+            {% if prestamo.persona.codigo_institucional %}
+            <div class="mb-3">
+                <span class="detail-label">Código Institucional:</span>
+                <p>{{ prestamo.persona.codigo_institucional }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <h4 class="detail-header">Equipos en Préstamo</h4>
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Código</th>
+                            <th>Nombre</th>
+                            <th>Laboratorio</th>
+                            <th>Estado</th>
+                            <th>Descripción</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for detalle in detalles %}
+                        <tr>
+                            <td>{{ detalle.equipo.codigo }}</td>
+                            <td>{{ detalle.equipo.nombre }}</td>
+                            <td>{{ detalle.equipo.laboratorio.nombre }}</td>
+                            <td>
+                                {% if detalle.estado == 'PRESTADO' %}
+                                <span class="badge bg-warning">Prestado</span>
+                                {% elif detalle.estado == 'DEVUELTO' %}
+                                <span class="badge bg-success">Devuelto</span>
+                                {% elif detalle.estado == 'RETRASADO' %}
+                                <span class="badge bg-danger">Retrasado</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ detalle.equipo.descripcion|default:"Sin descripción" }}</td>
+                            <td>
+                                {% if detalle.estado == 'PRESTADO' %}
+                                <a href="{% url 'devolver_equipo' prestamo.id detalle.id %}" class="btn btn-sm btn-success">
+                                    <i class="fas fa-undo"></i> Devolver
+                                </a>
+                                {% else %}
+                                <span class="text-muted">Devuelto el {{ detalle.fecha_devolucion_real|date:"d/m/Y H:i" }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">No hay equipos asociados a este préstamo.</td>
+                        </tr>
+                        {% endfor %}
+                        
+                        {% if prestamo.equipo %}
+                        <!-- Compatibilidad con préstamos antiguos -->
+                        <tr class="table-info">
+                            <td>{{ prestamo.equipo.codigo }}</td>
+                            <td>{{ prestamo.equipo.nombre }}</td>
+                            <td>{{ prestamo.equipo.laboratorio.nombre }}</td>
+                            <td>
+                                {% if prestamo.estado == 'PRESTADO' %}
+                                <span class="badge bg-warning">Prestado</span>
+                                {% elif prestamo.estado == 'DEVUELTO' %}
+                                <span class="badge bg-success">Devuelto</span>
+                                {% elif prestamo.estado == 'RETRASADO' %}
+                                <span class="badge bg-danger">Retrasado</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ prestamo.equipo.descripcion|default:"Sin descripción" }}</td>
+                            <td>
+                                {% if prestamo.estado == 'PRESTADO' %}
+                                <a href="{% url 'devolver_prestamo' prestamo.id %}" class="btn btn-sm btn-success">
+                                    <i class="fas fa-undo"></i> Devolver
+                                </a>
+                                {% else %}
+                                <span class="text-muted">Devuelto el {{ prestamo.fecha_devolucion_real|date:"d/m/Y H:i" }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="pdf-container">
+                <h4 class="detail-header">Documento de Préstamo</h4>
+                
+                {% if messages %}
+                    {% for message in messages %}
+                        {% if 'error' in message.tags and 'PDF' in message %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>Nota:</strong> {{ message }}
+                                <p>La aplicación funciona normalmente, pero la generación de PDF requiere dependencias adicionales de sistema (GTK3).</p>
+                                <p>Para instalar estas dependencias en Windows, siga las instrucciones en <a href="https://doc.courtbouillon.org/weasyprint/stable/first_steps.html#windows" target="_blank">documentación de WeasyPrint</a>.</p>
+                            </div>
+                        {% endif %}
+                        {% if 'info' in message.tags and 'HTML' in message %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Información:</strong> {{ message }}
+                                <p>Puede visualizar o descargar el documento en formato HTML como alternativa.</p>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+                
+                <p>Puede visualizar o descargar el documento de préstamo:</p>
+                <div class="pdf-actions">
+                    <a href="{% url 'generar_pdf_prestamo' prestamo.id %}" class="btn btn-info" target="_blank">
+                        <i class="fas fa-eye me-2"></i> Vista Previa
+                    </a>
+                    <a href="{% url 'generar_pdf_prestamo' prestamo.id %}?download=true" class="btn btn-primary">
+                        <i class="fas fa-download me-2"></i> Descargar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

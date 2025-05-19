@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Formulario de Laboratorio - Sistema de Préstamo de Equipos{% endblock %}
+
+{% block page_title %}
+{% if form.instance.pk %}Editar Laboratorio{% else %}Nuevo Laboratorio{% endif %}
+{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'laboratorio_list' %}" class="btn btn-secondary">
+    <i class="fas fa-arrow-left me-2"></i> Volver a la lista
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <form method="post" novalidate>
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-md-6">
+                    {{ form.nombre|as_crispy_field }}
+                </div>
+                <div class="col-md-6">
+                    {{ form.tipo|as_crispy_field }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    {{ form.descripcion|as_crispy_field }}
+                </div>
+            </div>
+            <div class="d-flex justify-content-end mt-3">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-2"></i> Guardar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

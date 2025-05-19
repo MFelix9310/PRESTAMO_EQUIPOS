@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalle de Persona - Sistema de Préstamo de Equipos{% endblock %}
+
+{% block page_title %}Detalle de Persona{% endblock %}
+
+{% block page_actions %}
+<div class="btn-group" role="group">
+    <a href="{% url 'persona_list' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i> Volver a la lista
+    </a>
+    <a href="{% url 'persona_update' persona.id %}" class="btn btn-warning">
+        <i class="fas fa-edit me-2"></i> Editar
+    </a>
+    <a href="{% url 'persona_delete' persona.id %}" class="btn btn-danger">
+        <i class="fas fa-trash me-2"></i> Eliminar
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="detail-container">
+    <div class="row">
+        <div class="col-md-6">
+            <h4 class="detail-header">Información Personal</h4>
+            <div class="mb-3">
+                <span class="detail-label">Nombre:</span>
+                <p>{{ persona.nombre }}</p>
+            </div>
+            <div class="mb-3">
+                <span class="detail-label">Cédula:</span>
+                <p>{{ persona.cedula }}</p>
+            </div>
+            <div class="mb-3">
+                <span class="detail-label">Carrera:</span>
+                <p>{{ persona.get_carrera_display }}</p>
+            </div>
+            <div class="mb-3">
+                <span class="detail-label">Código Institucional:</span>
+                <p>{{ persona.codigo_institucional|default:"No aplica" }}</p>
+            </div>
+            <div class="mb-3">
+                <span class="detail-label">Fecha de Registro:</span>
+                <p>{{ persona.fecha_registro|date:"d/m/Y H:i" }}</p>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <h4 class="detail-header">Estadísticas</h4>
+            <div class="mb-3">
+                <span class="detail-label">Total de Préstamos:</span>
+                <p>{{ prestamos.count }}</p>
+            </div>
+            <div class="mb-3">
+                <span class="detail-label">Préstamos Activos:</span>
+                <p>{{ prestamos|dictsortreversed:"fecha_prestamo"|divisibleby:"estado" }}</p>
+            </div>
+        </div>
+    </div>
+
+    <h4 class="detail-header mt-4">Historial de Préstamos</h4>
+    {% if prestamos %}
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Equipo</th>
+                    <th>Laboratorio</th>
+                    <th>Fecha Préstamo</th>
+                    <th>Fecha Devolución Esperada</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for prestamo in prestamos %}
+                <tr>
+                    <td>{{ prestamo.equipo.nombre }}</td>
+                    <td>{{ prestamo.equipo.laboratorio.nombre }}</td>
+                    <td>{{ prestamo.fecha_prestamo|date:"d/m/Y H:i" }}</td>
+                    <td>{{ prestamo.fecha_devolucion_esperada|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        {% if prestamo.estado == 'PRESTADO' %}
+                        <span class="badge bg-warning">Prestado</span>
+                        {% elif prestamo.estado == 'DEVUELTO' %}
+                        <span class="badge bg-success">Devuelto</span>
+                        {% else %}
+                        <span class="badge bg-danger">Retrasado</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'prestamo_detail' prestamo.id %}" class="btn btn-sm btn-primary" title="Ver detalles">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            {% if prestamo.estado == 'PRESTADO' %}
+                            <a href="{% url 'devolver_prestamo' prestamo.id %}" class="btn btn-sm btn-success" title="Devolver">
+                                <i class="fas fa-undo"></i>
+                            </a>
+                            {% endif %}
+                            <a href="{% url 'generar_pdf_prestamo' prestamo.id %}" class="btn btn-sm btn-info" title="Ver PDF" target="_blank">
+                                <i class="fas fa-file-pdf"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i> Esta persona no tiene préstamos registrados.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

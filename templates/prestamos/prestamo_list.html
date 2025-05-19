@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Préstamos - Sistema de Préstamo de Equipos{% endblock %}
+
+{% block page_title %}Préstamos{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'prestamo_create' %}" class="btn btn-primary">
+    <i class="fas fa-plus-circle me-2"></i> Nuevo Préstamo
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="card search-container mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-8">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" name="busqueda" class="form-control" placeholder="Buscar por persona, cédula, equipo o código" value="{{ busqueda }}">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <select name="estado" class="form-select">
+                    <option value="">Todos los estados</option>
+                    {% for estado_value, estado_label in estados %}
+                    <option value="{{ estado_value }}" {% if estado == estado_value %}selected{% endif %}>{{ estado_label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if prestamos %}
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Persona</th>
+                <th>Equipo</th>
+                <th>Laboratorio</th>
+                <th>Fecha Préstamo</th>
+                <th>Fecha Devolución Esperada</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for prestamo in prestamos %}
+            <tr>
+                <td>{{ prestamo.persona.nombre }}</td>
+                <td>{{ prestamo.equipo.nombre }}</td>
+                <td>{{ prestamo.equipo.laboratorio.nombre }}</td>
+                <td>{{ prestamo.fecha_prestamo|date:"d/m/Y H:i" }}</td>
+                <td>{{ prestamo.fecha_devolucion_esperada|date:"d/m/Y H:i" }}</td>
+                <td>
+                    {% if prestamo.estado == 'PRESTADO' %}
+                    <span class="badge bg-warning">Prestado</span>
+                    {% elif prestamo.estado == 'DEVUELTO' %}
+                    <span class="badge bg-success">Devuelto</span>
+                    {% else %}
+                    <span class="badge bg-danger">Retrasado</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="btn-group" role="group">
+                        <a href="{% url 'prestamo_detail' prestamo.id %}" class="btn btn-sm btn-primary" title="Ver detalles">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <a href="{% url 'prestamo_update' prestamo.id %}" class="btn btn-sm btn-warning" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        {% if prestamo.estado == 'PRESTADO' %}
+                        <a href="{% url 'devolver_prestamo' prestamo.id %}" class="btn btn-sm btn-success" title="Devolver">
+                            <i class="fas fa-undo"></i>
+                        </a>
+                        {% endif %}
+                        <a href="{% url 'generar_pdf_prestamo' prestamo.id %}" class="btn btn-sm btn-info" title="Ver PDF" target="_blank">
+                            <i class="fas fa-file-pdf"></i>
+                        </a>
+                        <a href="{% url 'prestamo_delete' prestamo.id %}" class="btn btn-sm btn-danger" title="Eliminar">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if is_paginated %}
+<nav aria-label="Paginación">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page=1{% if busqueda %}&busqueda={{ busqueda }}{% endif %}{% if estado %}&estado={{ estado }}{% endif %}" aria-label="Primera">
+                <span aria-hidden="true">&laquo;&laquo;</span>
+            </a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if busqueda %}&busqueda={{ busqueda }}{% endif %}{% if estado %}&estado={{ estado }}{% endif %}" aria-label="Anterior">
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <a class="page-link" href="#" aria-label="Primera">
+                <span aria-hidden="true">&laquo;&laquo;</span>
+            </a>
+        </li>
+        <li class="page-item disabled">
+            <a class="page-link" href="#" aria-label="Anterior">
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+        </li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <li class="page-item active">
+                <a class="page-link" href="?page={{ num }}{% if busqueda %}&busqueda={{ busqueda }}{% endif %}{% if estado %}&estado={{ estado }}{% endif %}">{{ num }}</a>
+            </li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ num }}{% if busqueda %}&busqueda={{ busqueda }}{% endif %}{% if estado %}&estado={{ estado }}{% endif %}">{{ num }}</a>
+            </li>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if busqueda %}&busqueda={{ busqueda }}{% endif %}{% if estado %}&estado={{ estado }}{% endif %}" aria-label="Siguiente">
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if busqueda %}&busqueda={{ busqueda }}{% endif %}{% if estado %}&estado={{ estado }}{% endif %}" aria-label="Última">
+                <span aria-hidden="true">&raquo;&raquo;</span>
+            </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <a class="page-link" href="#" aria-label="Siguiente">
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+        </li>
+        <li class="page-item disabled">
+            <a class="page-link" href="#" aria-label="Última">
+                <span aria-hidden="true">&raquo;&raquo;</span>
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% else %}
+<div class="alert alert-info">
+    <i class="fas fa-info-circle me-2"></i> No se encontraron préstamos registrados.
+</div>
+{% endif %}
+{% endblock %}
